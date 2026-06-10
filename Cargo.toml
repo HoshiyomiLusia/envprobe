@@ -1,0 +1,28 @@
+[package]
+name = "envprobe"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.88"
+description = "Inventory the developer tools, services, and language runtimes (with versions) on a macOS, Linux, or Windows machine."
+repository = "https://github.com/HoshiyomiLusia/envprobe"
+readme = "README.md"
+license = "MIT"
+
+[dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "process", "time", "fs"] }
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+regex = "1"
+comfy-table = "7"
+which = "6"
+anyhow = "1"
+futures = "0.3"
+semver = "1"
+sha2 = "0.10"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true

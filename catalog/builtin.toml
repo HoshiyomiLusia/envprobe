@@ -1,0 +1,912 @@
+# Tools and services envprobe detects.
+#
+# [[tool]]:    name, command, args (default ["--version"]),
+#              stream ("stdout"|"stderr"|"both", default "stdout"),
+#              version_regex (one capture group), not_found_regex (optional), category
+# [[service]]: name, category, macos_match (launchctl label substring),
+#              linux_units (systemd unit names, tried in order)
+# Category values: see src/model.rs.
+
+# ===== VCS =====
+[[tool]]
+name = "git"
+command = "git"
+version_regex = 'git version (\S+)'
+category = "vcs"
+
+[[tool]]
+name = "hg"
+command = "hg"
+version_regex = 'version (\S+?)\)'
+category = "vcs"
+
+[[tool]]
+name = "svn"
+command = "svn"
+version_regex = 'svn, version (\S+)'
+category = "vcs"
+
+[[tool]]
+name = "fossil"
+command = "fossil"
+version_regex = 'version (\S+)'
+category = "vcs"
+
+# ===== Languages =====
+[[tool]]
+name = "python"
+command = "python3"
+stream = "both"
+version_regex = 'Python (\S+)'
+category = "language"
+
+[[tool]]
+name = "node"
+command = "node"
+version_regex = 'v(\S+)'
+category = "language"
+
+[[tool]]
+name = "ruby"
+command = "ruby"
+version_regex = 'ruby (\S+?)p'
+category = "language"
+
+[[tool]]
+name = "go"
+command = "go"
+args = ["version"]
+version_regex = 'go version go(\S+)'
+category = "language"
+
+[[tool]]
+name = "rust"
+command = "rustc"
+version_regex = 'rustc (\S+)'
+category = "language"
+
+[[tool]]
+name = "java"
+command = "java"
+args = ["-version"]
+stream = "stderr"
+version_regex = 'version "(\S+)"'
+not_found_regex = 'Unable to locate a Java Runtime'
+category = "language"
+
+[[tool]]
+name = "php"
+command = "php"
+version_regex = 'PHP (\S+)'
+category = "language"
+
+[[tool]]
+name = "deno"
+command = "deno"
+version_regex = 'deno (\S+)'
+category = "language"
+
+[[tool]]
+name = "bun"
+command = "bun"
+version_regex = '(\d+\.\d+\.\d+)'
+category = "language"
+
+[[tool]]
+name = "lua"
+command = "lua"
+args = ["-v"]
+stream = "both"
+version_regex = 'Lua (\S+)'
+category = "language"
+
+[[tool]]
+name = "dotnet"
+command = "dotnet"
+version_regex = '(\d+\.\d+\.\d+)'
+category = "language"
+
+[[tool]]
+name = "swift"
+command = "swift"
+version_regex = '(?:Apple )?Swift version (\S+)'
+category = "language"
+
+[[tool]]
+name = "zig"
+command = "zig"
+args = ["version"]
+version_regex = '(\S+)'
+category = "language"
+
+[[tool]]
+name = "perl"
+command = "perl"
+args = ["-e", "print $^V"]
+version_regex = 'v?(\S+)'
+category = "language"
+
+[[tool]]
+name = "elixir"
+command = "elixir"
+version_regex = 'Elixir (\S+)'
+category = "language"
+
+[[tool]]
+name = "erlang"
+command = "erl"
+args = ["-version"]
+stream = "both"
+version_regex = 'version (\S+)'
+category = "language"
+
+[[tool]]
+name = "kotlin"
+command = "kotlinc"
+stream = "both"
+version_regex = 'kotlinc(?:-jvm)? (\S+)'
+category = "language"
+
+[[tool]]
+name = "scala"
+command = "scala"
+stream = "both"
+version_regex = 'version (\S+)'
+category = "language"
+
+[[tool]]
+name = "haskell"
+command = "ghc"
+version_regex = 'version (\S+)'
+category = "language"
+
+[[tool]]
+name = "r"
+command = "R"
+version_regex = 'R version (\S+)'
+category = "language"
+
+# ===== Containers =====
+[[tool]]
+name = "docker"
+command = "docker"
+version_regex = 'Docker version (\S+),'
+category = "container"
+
+[[tool]]
+name = "podman"
+command = "podman"
+version_regex = 'podman version (\S+)'
+category = "container"
+
+[[tool]]
+name = "colima"
+command = "colima"
+version_regex = 'colima version (\S+)'
+category = "container"
+
+[[tool]]
+name = "docker-compose"
+command = "docker-compose"
+version_regex = 'version v?(\S+),?'
+category = "container"
+
+[[tool]]
+name = "docker-compose-plugin"
+command = "docker"
+args = ["compose", "version"]
+version_regex = 'Docker Compose version v?(\S+)'
+category = "container"
+
+[[tool]]
+name = "nerdctl"
+command = "nerdctl"
+version_regex = 'nerdctl version (\S+)'
+category = "container"
+
+[[tool]]
+name = "lima"
+command = "limactl"
+version_regex = 'limactl version (\S+)'
+category = "container"
+
+# ===== Build tools =====
+[[tool]]
+name = "make"
+command = "make"
+version_regex = 'Make (\S+)'
+category = "build-tool"
+
+[[tool]]
+name = "cmake"
+command = "cmake"
+version_regex = 'cmake version (\S+)'
+category = "build-tool"
+
+[[tool]]
+name = "ninja"
+command = "ninja"
+version_regex = '(\d+\.\d+\.\d+)'
+category = "build-tool"
+
+[[tool]]
+name = "gradle"
+command = "gradle"
+version_regex = 'Gradle (\S+)'
+category = "build-tool"
+
+[[tool]]
+name = "maven"
+command = "mvn"
+version_regex = 'Apache Maven (\S+)'
+category = "build-tool"
+
+[[tool]]
+name = "bazel"
+command = "bazel"
+version_regex = 'bazel (\S+)'
+category = "build-tool"
+
+[[tool]]
+name = "just"
+command = "just"
+version_regex = 'just (\S+)'
+category = "build-tool"
+
+[[tool]]
+name = "task"
+command = "task"
+version_regex = 'Task version: v?(\S+)'
+category = "build-tool"
+
+[[tool]]
+name = "meson"
+command = "meson"
+version_regex = '(\d+\.\d+\.\d+)'
+category = "build-tool"
+
+[[tool]]
+name = "xcodebuild"
+command = "xcodebuild"
+args = ["-version"]
+version_regex = 'Xcode (\S+)'
+category = "build-tool"
+
+[[tool]]
+name = "sccache"
+command = "sccache"
+version_regex = 'sccache (\S+)'
+category = "build-tool"
+
+# ===== Package managers =====
+[[tool]]
+name = "brew"
+command = "brew"
+version_regex = 'Homebrew (\S+)'
+category = "package-manager"
+
+[[tool]]
+name = "npm"
+command = "npm"
+version_regex = '(\d+\.\d+\.\d+)'
+category = "package-manager"
+
+[[tool]]
+name = "pnpm"
+command = "pnpm"
+version_regex = '(\d+\.\d+\.\d+)'
+category = "package-manager"
+
+[[tool]]
+name = "yarn"
+command = "yarn"
+version_regex = '(\d+\.\d+\.\d+)'
+category = "package-manager"
+
+[[tool]]
+name = "pip"
+command = "pip3"
+version_regex = 'pip (\S+)'
+category = "package-manager"
+
+[[tool]]
+name = "cargo"
+command = "cargo"
+version_regex = 'cargo (\S+)'
+category = "package-manager"
+
+[[tool]]
+name = "gem"
+command = "gem"
+version_regex = '(\d+\.\d+\.\d+)'
+category = "package-manager"
+
+[[tool]]
+name = "uv"
+command = "uv"
+version_regex = 'uv (\S+)'
+category = "package-manager"
+
+[[tool]]
+name = "pipx"
+command = "pipx"
+version_regex = '(\d+\.\d+\.\d+)'
+category = "package-manager"
+
+[[tool]]
+name = "poetry"
+command = "poetry"
+version_regex = 'version (\S+?)\)'
+category = "package-manager"
+
+[[tool]]
+name = "pdm"
+command = "pdm"
+version_regex = 'version (\S+)'
+category = "package-manager"
+
+[[tool]]
+name = "pixi"
+command = "pixi"
+version_regex = 'pixi (\S+)'
+category = "package-manager"
+
+[[tool]]
+name = "composer"
+command = "composer"
+version_regex = 'Composer version (\S+)'
+category = "package-manager"
+
+[[tool]]
+name = "corepack"
+command = "corepack"
+version_regex = '(\d+\.\d+\.\d+)'
+category = "package-manager"
+
+# ===== Version managers =====
+[[tool]]
+name = "rustup"
+command = "rustup"
+version_regex = 'rustup (\S+)'
+category = "version-manager"
+
+[[tool]]
+name = "mise"
+command = "mise"
+version_regex = 'mise (\S+)'
+category = "version-manager"
+
+[[tool]]
+name = "fnm"
+command = "fnm"
+version_regex = 'fnm (\S+)'
+category = "version-manager"
+
+[[tool]]
+name = "volta"
+command = "volta"
+version_regex = '(\d+\.\d+\.\d+)'
+category = "version-manager"
+
+[[tool]]
+name = "jenv"
+command = "jenv"
+version_regex = 'jenv (\S+)'
+category = "version-manager"
+
+# ===== Web servers =====
+[[tool]]
+name = "nginx"
+command = "nginx"
+args = ["-v"]
+stream = "stderr"
+version_regex = 'nginx/(\S+)'
+category = "web-server"
+
+[[tool]]
+name = "apache"
+command = "httpd"
+args = ["-v"]
+stream = "both"
+version_regex = 'Apache/(\S+)'
+category = "web-server"
+
+[[tool]]
+name = "caddy"
+command = "caddy"
+args = ["version"]
+version_regex = 'v(\S+)'
+category = "web-server"
+
+[[tool]]
+name = "traefik"
+command = "traefik"
+args = ["version"]
+version_regex = 'Version:\s+(\S+)'
+category = "web-server"
+
+[[tool]]
+name = "haproxy"
+command = "haproxy"
+args = ["-v"]
+stream = "both"
+version_regex = 'HAProxy version (\S+)'
+category = "web-server"
+
+[[tool]]
+name = "lighttpd"
+command = "lighttpd"
+args = ["-v"]
+stream = "both"
+version_regex = 'lighttpd/(\S+)'
+category = "web-server"
+
+# ===== Databases =====
+[[tool]]
+name = "psql"
+command = "psql"
+version_regex = 'psql \(PostgreSQL\) (\S+)'
+category = "database"
+
+[[tool]]
+name = "mysql"
+command = "mysql"
+version_regex = 'Ver (\S+)'
+category = "database"
+
+[[tool]]
+name = "mongosh"
+command = "mongosh"
+version_regex = '(\d+\.\d+\.\d+)'
+category = "database"
+
+[[tool]]
+name = "redis-cli"
+command = "redis-cli"
+version_regex = 'redis-cli (\S+)'
+category = "database"
+
+[[tool]]
+name = "sqlite3"
+command = "sqlite3"
+version_regex = '(\d+\.\d+\.\d+)'
+category = "database"
+
+[[tool]]
+name = "mariadb"
+command = "mariadb"
+version_regex = 'Distrib (\S+)'
+category = "database"
+
+[[tool]]
+name = "duckdb"
+command = "duckdb"
+version_regex = 'v?(\d+\.\d+\.\d+)'
+category = "database"
+
+[[tool]]
+name = "clickhouse-client"
+command = "clickhouse-client"
+version_regex = 'version (\S+)'
+category = "database"
+
+[[tool]]
+name = "influx"
+command = "influx"
+args = ["version"]
+version_regex = 'Influx CLI (\S+)'
+category = "database"
+
+[[tool]]
+name = "cqlsh"
+command = "cqlsh"
+version_regex = '(\d+\.\d+\.\d+)'
+category = "database"
+
+# ===== DevOps =====
+[[tool]]
+name = "kubectl"
+command = "kubectl"
+args = ["version", "--client"]
+stream = "both"
+version_regex = 'Client Version: v?(\S+)'
+category = "devops"
+
+[[tool]]
+name = "helm"
+command = "helm"
+args = ["version", "--short"]
+version_regex = 'v?(\d+\.\d+\.\d+)'
+category = "devops"
+
+[[tool]]
+name = "terraform"
+command = "terraform"
+version_regex = 'Terraform v(\S+)'
+category = "devops"
+
+[[tool]]
+name = "ansible"
+command = "ansible"
+version_regex = 'ansible \[core (\S+?)\]'
+category = "devops"
+
+[[tool]]
+name = "aws"
+command = "aws"
+version_regex = 'aws-cli/(\S+)'
+category = "devops"
+
+[[tool]]
+name = "gcloud"
+command = "gcloud"
+version_regex = 'Google Cloud SDK (\S+)'
+category = "devops"
+
+[[tool]]
+name = "az"
+command = "az"
+args = ["version"]
+version_regex = '"azure-cli":\s*"([^"]+)"'
+category = "devops"
+
+[[tool]]
+name = "doctl"
+command = "doctl"
+version_regex = 'doctl version (\S+)'
+category = "devops"
+
+[[tool]]
+name = "flyctl"
+command = "flyctl"
+version_regex = 'flyctl version (\S+)'
+category = "devops"
+
+[[tool]]
+name = "vercel"
+command = "vercel"
+version_regex = '(?:Vercel CLI )?(\d+\.\d+\.\d+)'
+category = "devops"
+
+[[tool]]
+name = "netlify"
+command = "netlify"
+version_regex = 'netlify-cli/(\S+)'
+category = "devops"
+
+[[tool]]
+name = "stripe"
+command = "stripe"
+version_regex = 'stripe version (\S+)'
+category = "devops"
+
+[[tool]]
+name = "tofu"
+command = "tofu"
+version_regex = 'OpenTofu v(\S+)'
+category = "devops"
+
+[[tool]]
+name = "packer"
+command = "packer"
+version_regex = '(?:Packer v)?(\d+\.\d+\.\d+)'
+category = "devops"
+
+[[tool]]
+name = "pulumi"
+command = "pulumi"
+version_regex = 'v?(\d+\.\d+\.\d+)'
+category = "devops"
+
+[[tool]]
+name = "vault"
+command = "vault"
+version_regex = 'Vault v(\S+)'
+category = "devops"
+
+[[tool]]
+name = "nomad"
+command = "nomad"
+version_regex = 'Nomad v(\S+)'
+category = "devops"
+
+[[tool]]
+name = "consul"
+command = "consul"
+version_regex = 'Consul v(\S+)'
+category = "devops"
+
+[[tool]]
+name = "kind"
+command = "kind"
+version_regex = 'kind version (\S+)'
+category = "devops"
+
+[[tool]]
+name = "minikube"
+command = "minikube"
+version_regex = 'minikube version: v(\S+)'
+category = "devops"
+
+[[tool]]
+name = "kustomize"
+command = "kustomize"
+args = ["version"]
+version_regex = 'v?(\d+\.\d+\.\d+)'
+category = "devops"
+
+[[tool]]
+name = "argocd"
+command = "argocd"
+args = ["version", "--client"]
+version_regex = 'argocd: v(\S+)'
+category = "devops"
+
+[[tool]]
+name = "flux"
+command = "flux"
+version_regex = 'flux version (\S+)'
+category = "devops"
+
+[[tool]]
+name = "tilt"
+command = "tilt"
+version_regex = 'v?(\d+\.\d+\.\d+)'
+category = "devops"
+
+[[tool]]
+name = "eksctl"
+command = "eksctl"
+version_regex = '(\d+\.\d+\.\d+)'
+category = "devops"
+
+[[tool]]
+name = "trivy"
+command = "trivy"
+version_regex = 'Version:\s+(\S+)'
+category = "devops"
+
+[[tool]]
+name = "snyk"
+command = "snyk"
+version_regex = '(\d+\.\d+\.\d+)'
+category = "devops"
+
+# ===== Utilities =====
+[[tool]]
+name = "jq"
+command = "jq"
+version_regex = 'jq-(\S+)'
+category = "utility"
+
+[[tool]]
+name = "ffmpeg"
+command = "ffmpeg"
+args = ["-version"]
+version_regex = 'ffmpeg version (\S+)'
+category = "utility"
+
+[[tool]]
+name = "rg"
+command = "rg"
+version_regex = 'ripgrep (\S+)'
+category = "utility"
+
+[[tool]]
+name = "fd"
+command = "fd"
+version_regex = 'fd (\S+)'
+category = "utility"
+
+[[tool]]
+name = "bat"
+command = "bat"
+version_regex = 'bat (\S+)'
+category = "utility"
+
+[[tool]]
+name = "fzf"
+command = "fzf"
+version_regex = '(\d+\.\d+\.\d+)'
+category = "utility"
+
+[[tool]]
+name = "gh"
+command = "gh"
+version_regex = 'gh version (\S+)'
+category = "utility"
+
+[[tool]]
+name = "tmux"
+command = "tmux"
+args = ["-V"]
+version_regex = 'tmux (\S+)'
+category = "utility"
+
+[[tool]]
+name = "nvim"
+command = "nvim"
+version_regex = 'NVIM v(\S+)'
+category = "utility"
+
+[[tool]]
+name = "curl"
+command = "curl"
+version_regex = 'curl (\S+)'
+category = "utility"
+
+[[tool]]
+name = "wget"
+command = "wget"
+version_regex = 'GNU Wget (\S+)'
+category = "utility"
+
+[[tool]]
+name = "yq"
+command = "yq"
+version_regex = 'version v?(\S+)'
+category = "utility"
+
+[[tool]]
+name = "httpie"
+command = "http"
+version_regex = '(\d+\.\d+\.\d+)'
+category = "utility"
+
+[[tool]]
+name = "hyperfine"
+command = "hyperfine"
+version_regex = 'hyperfine (\S+)'
+category = "utility"
+
+[[tool]]
+name = "tokei"
+command = "tokei"
+version_regex = 'tokei (\S+)'
+category = "utility"
+
+[[tool]]
+name = "direnv"
+command = "direnv"
+version_regex = 'direnv v?(\S+)'
+category = "utility"
+
+[[tool]]
+name = "starship"
+command = "starship"
+version_regex = 'starship (\S+)'
+category = "utility"
+
+[[tool]]
+name = "zoxide"
+command = "zoxide"
+version_regex = 'zoxide (\S+)'
+category = "utility"
+
+[[tool]]
+name = "eza"
+command = "eza"
+version_regex = 'v(\d+\.\d+\.\d+)'
+category = "utility"
+
+[[tool]]
+name = "lsd"
+command = "lsd"
+version_regex = 'lsd (\S+)'
+category = "utility"
+
+[[tool]]
+name = "delta"
+command = "delta"
+version_regex = 'delta (\S+)'
+category = "utility"
+
+[[tool]]
+name = "bottom"
+command = "btm"
+version_regex = 'bottom (\S+)'
+category = "utility"
+
+[[tool]]
+name = "procs"
+command = "procs"
+version_regex = 'procs (\S+)'
+category = "utility"
+
+[[tool]]
+name = "dust"
+command = "dust"
+version_regex = 'Dust (\S+)'
+category = "utility"
+
+[[tool]]
+name = "sd"
+command = "sd"
+version_regex = 'sd (\S+)'
+category = "utility"
+
+[[tool]]
+name = "yazi"
+command = "yazi"
+version_regex = 'Yazi (\S+)'
+category = "utility"
+
+[[tool]]
+name = "atuin"
+command = "atuin"
+version_regex = 'atuin (\S+)'
+category = "utility"
+
+[[tool]]
+name = "gpg"
+command = "gpg"
+version_regex = 'gpg \(GnuPG\) (\S+)'
+category = "utility"
+
+[[tool]]
+name = "openssl"
+command = "openssl"
+args = ["version"]
+version_regex = 'OpenSSL (\S+)'
+category = "utility"
+
+# ===== Services =====
+[[service]]
+name = "nginx"
+category = "web-server"
+macos_match = "nginx"
+linux_units = ["nginx.service"]
+
+[[service]]
+name = "apache"
+category = "web-server"
+macos_match = "httpd"
+linux_units = ["apache2.service", "httpd.service"]
+
+[[service]]
+name = "caddy"
+category = "web-server"
+macos_match = "caddy"
+linux_units = ["caddy.service"]
+
+[[service]]
+name = "postgresql"
+category = "database"
+macos_match = "postgresql"
+linux_units = ["postgresql.service"]
+
+[[service]]
+name = "mysql"
+category = "database"
+macos_match = "mysql"
+linux_units = ["mysql.service", "mariadb.service"]
+
+[[service]]
+name = "mongodb"
+category = "database"
+macos_match = "mongodb"
+linux_units = ["mongod.service"]
+
+[[service]]
+name = "redis"
+category = "database"
+macos_match = "redis"
+linux_units = ["redis.service", "redis-server.service"]
+
+[[service]]
+name = "clickhouse"
+category = "database"
+macos_match = "clickhouse"
+linux_units = ["clickhouse-server.service"]
+
+[[service]]
+name = "minio"
+category = "database"
+macos_match = "minio"
+linux_units = ["minio.service"]
+
+[[service]]
+name = "docker"
+category = "container"
+macos_match = "com.docker.docker"
+linux_units = ["docker.service"]

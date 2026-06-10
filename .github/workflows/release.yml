@@ -1,0 +1,165 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag to publish
+        required: true
+        type: string
+        default: v0.1.0
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }}-${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-latest
+            target: x86_64-pc-windows-msvc
+            os: windows
+            arch: x86_64
+            ext: zip
+            binary: envprobe.exe
+          - runner: macos-14
+            target: aarch64-apple-darwin
+            os: macos
+            arch: aarch64
+            ext: tar.gz
+            binary: envprobe
+          - runner: ubuntu-22.04
+            target: x86_64-unknown-linux-musl
+            os: linux
+            arch: x86_64
+            ext: tar.gz
+            binary: envprobe
+            musl: true
+          - runner: ubuntu-22.04-arm
+            target: aarch64-unknown-linux-musl
+            os: linux
+            arch: aarch64
+            ext: tar.gz
+            binary: envprobe
+            musl: true
+
+    steps:
+      - name: Download source
+        env:
+          SOURCE_REF: ${{ github.event.inputs.tag || github.sha }}
+        shell: bash
+        run: |
+          curl -fsSL "https://github.com/${GITHUB_REPOSITORY}/archive/${SOURCE_REF}.tar.gz" -o source.tar.gz
+          tar -xzf source.tar.gz --strip-components=1
+
+      - name: Install Rust
+        shell: bash
+        run: |
+          rustup toolchain install stable --profile minimal --target ${{ matrix.target }}
+          rustup default stable
+
+      - name: Install Linux musl tools
+        if: matrix.musl == true
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y musl-tools
+
+      - name: Build
+        shell: bash
+        run: cargo build --release --locked --target ${{ matrix.target }}
+
+      - name: Package (unix)
+        if: matrix.os != 'windows'
+        shell: bash
+        env:
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          NAME="envprobe-${TAG}-${{ matrix.os }}-${{ matrix.arch }}"
+          mkdir -p "dist/${NAME}"
+          cp "target/${{ matrix.target }}/release/${{ matrix.binary }}" "dist/${NAME}/"
+          cp README.md LICENSE "dist/${NAME}/"
+          tar -czf "${NAME}.tar.gz" -C dist "${NAME}"
+          shasum -a 256 "${NAME}.tar.gz" > "${NAME}.tar.gz.sha256"
+
+      - name: Package (windows)
+        if: matrix.os == 'windows'
+        shell: pwsh
+        run: |
+          $TAG = "${{ github.event.inputs.tag || github.ref_name }}"
+          $NAME = "envprobe-${TAG}-${{ matrix.os }}-${{ matrix.arch }}"
+          New-Item -ItemType Directory -Force -Path "dist/$NAME" | Out-Null
+          Copy-Item "target/${{ matrix.target }}/release/${{ matrix.binary }}" "dist/$NAME/"
+          Copy-Item README.md, LICENSE "dist/$NAME/"
+          Compress-Archive -Path "dist/$NAME" -DestinationPath "$NAME.zip" -Force
+          $hash = (Get-FileHash -Algorithm SHA256 "$NAME.zip").Hash.ToLower()
+          # trailing LF so cat into SHA256SUMS.txt doesn't merge lines
+          "$hash  $NAME.zip`n" | Out-File -FilePath "$NAME.zip.sha256" -Encoding ascii -NoNewline
+
+      # Build jobs only upload artifacts; the single publish job does all release writes.
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.os }}-${{ matrix.arch }}
+          path: |
+            envprobe-*.tar.gz
+            envprobe-*.tar.gz.sha256
+            envprobe-*.zip
+            envprobe-*.zip.sha256
+          if-no-files-found: ignore
+          retention-days: 1
+
+  publish:
+    name: Publish release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Assemble SHA256SUMS.txt
+        run: |
+          cd dist
+          cat *.sha256 > SHA256SUMS.txt
+          echo "=== release assets ==="
+          ls -1
+
+      - name: Publish release (single atomic write, with retry)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          cd dist
+          # Retry: the token API returns intermittent 401s. Each attempt recreates the release.
+          attempt=1
+          max=5
+          while true; do
+            gh release delete "$TAG_NAME" --repo "$GITHUB_REPOSITORY" --yes 2>/dev/null || true
+            if gh release create "$TAG_NAME" --repo "$GITHUB_REPOSITORY" \
+                 --title "envprobe $TAG_NAME" \
+                 --notes "Release $TAG_NAME." \
+                 envprobe-*.tar.gz envprobe-*.tar.gz.sha256 \
+                 envprobe-*.zip envprobe-*.zip.sha256 \
+                 SHA256SUMS.txt; then
+              echo "Published on attempt ${attempt}."
+              break
+            fi
+            if [ "$attempt" -ge "$max" ]; then
+              echo "Publish failed after ${max} attempts." >&2
+              exit 1
+            fi
+            echo "Publish attempt ${attempt} failed (likely a transient GitHub 401); retrying in $((attempt * 10))s..."
+            attempt=$((attempt + 1))
+            sleep $((attempt * 10))
+          done

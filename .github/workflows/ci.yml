@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Download source
+        run: |
+          curl -fsSL "https://github.com/${GITHUB_REPOSITORY}/archive/${GITHUB_SHA}.tar.gz" -o source.tar.gz
+          tar -xzf source.tar.gz --strip-components=1
+
+      - name: Install Rust
+        run: |
+          rustup toolchain install stable --profile minimal --component clippy --component rustfmt
+          rustup default stable
+
+      - name: Check formatting
+        run: cargo fmt --check
+
+      - name: Test
+        run: cargo test --locked
+
+      - name: Clippy
+        run: cargo clippy --all-targets --all-features --locked -- -D warnings
+
+      - name: Clippy (cross-platform targets)
+        run: |
+          rustup target add x86_64-pc-windows-msvc aarch64-apple-darwin
+          cargo clippy --target x86_64-pc-windows-msvc --locked -- -D warnings
+          cargo clippy --target aarch64-apple-darwin --locked -- -D warnings
+
+      - name: Check installer syntax
+        run: sh -n install.sh
+
+      - name: Check PowerShell installer syntax
+        shell: pwsh
+        run: |
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path ./install.ps1).Path, [ref]$null, [ref]$errors) | Out-Null
+          if ($errors) { $errors | ForEach-Object { Write-Error $_.Message }; exit 1 }
+          Write-Host "install.ps1 parsed OK"
